@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#064e3b">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>حاسبة المسيرات والرواتب العسكرية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./script.js" defer></script>
+    <!-- Google Fonts: Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen pb-24 transition-colors duration-200">
+
+    <!-- Top App Header -->
+    <header class="glass-header text-white sticky top-0 z-40 shadow-lg border-b border-emerald-800/60">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md text-slate-950 font-black text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl tracking-tight flex items-center gap-2">
+                        حاسبة المسيرات والرواتب
+                        <span class="text-[11px] bg-emerald-700/80 text-amber-300 px-2 py-0.5 rounded-full font-bold border border-amber-400/30">2026</span>
+                    </h1>
+                    <p class="text-xs text-emerald-200/90">وكالة شؤون الأفواج • شعبة الرواتب</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Dark Mode Toggle -->
+                <button type="button" onclick="window.toggleDarkMode()" class="w-9 h-9 rounded-xl bg-emerald-800/70 hover:bg-emerald-700 flex items-center justify-center text-amber-300 transition active:scale-95" title="تبديل المظهر">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Desktop Navigation Pills -->
+        <div class="hidden md:block bg-emerald-950/60 border-t border-emerald-800/40">
+            <div class="max-w-6xl mx-auto px-4 flex gap-2 py-2">
+                <button type="button" onclick="window.switchTab('tab-payroll')" id="desk-tab-payroll" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-amber-500 text-slate-950 shadow">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>1. حاسبة المسيرات الإفرادية</span>
+                </button>
+                <button type="button" onclick="window.switchTab('tab-dates')" id="desk-tab-dates" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>2. محول وحاسبة التاريخ</span>
+                </button>
+                <button type="button" onclick="window.switchTab('tab-remote')" id="desk-tab-remote" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>3. حاسبة المناطق النائية (%)</span>
+                </button>
+                <button type="button" onclick="window.switchTab('tab-tables')" id="desk-tab-tables" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span>4. جدول الرواتب والعلاوات الفنية</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-3 sm:px-4 pt-4">
+
+        <!-- ==========================================
+             TAB 1: حاسبة المسيرات الإفرادية (بالتاريخ / بالأيام / فرق الترقية)
+             ========================================== -->
+        <section id="tab-payroll" class="tab-content active space-y-4">
+            
+            <!-- Mode Selector Switch (3 Modes) -->
+            <div class="bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 grid grid-cols-3 gap-1.5 sm:gap-2">
+                <button type="button" id="modeBtnDate" onclick="window.setPayrollMode('date')" class="py-2.5 px-2 sm:px-3 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow transition">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>حاسبة بالتاريخ</span>
+                </button>
+                <button type="button" id="modeBtnDays" onclick="window.setPayrollMode('days')" class="py-2.5 px-2 sm:px-3 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <span>حاسبة بعدد الأيام</span>
+                </button>
+                <button type="button" id="modeBtnPromo" onclick="window.setPayrollMode('promo')" class="py-2.5 px-2 sm:px-3 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-angles-up"></i>
+                    <span>حاسبة فرق الترقية</span>
+                </button>
+            </div>
+
+            <!-- Main Input Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                    <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span id="mainCardTitle">بيانات الفرد والمسير</span>
+                    </h2>
+                    <button type="button" onclick="window.resetPayrollInputs()" class="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1 font-medium">
+                        <i class="fa-solid fa-rotate-right"></i> إعادة ضبط
+                    </button>
+                </div>
+
+                <!-- Standard Rank & Degree Grid (Hidden in Promo Mode) -->
+                <div id="standardRankGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الرتبة</label>
+                        <select id="pRank" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">الدرجة</label>
+                        <select id="pDegree" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <!-- 1 to 15 -->
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">العلاوة الفنية</label>
+                        <select id="pTech" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="1">علاوة فنية ١</option>
+                            <option value="2">علاوة فنية ٢</option>
+                            <option value="3">علاوة فنية ٣</option>
+                            <option value="4">علاوة فنية ٤</option>
+                            <option value="5">علاوة فنية ٥</option>
+                            <option value="6">علاوة فنية ٦</option>
+                            <option value="7">علاوة فنية ٧</option>
+                            <option value="8">علاوة فنية ٨</option>
+                            <option value="9">علاوة فنية ٩</option>
+                            <option value="10">علاوة فنية ١٠</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">المناطق النائية</label>
+                        <select id="pRemote" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="6">مناطق نائية ٦٪</option>
+                            <option value="7">مناطق نائية ٧٪</option>
+                            <option value="8">مناطق نائية ٨٪</option>
+                            <option value="9">مناطق نائية ٩٪</option>
+                            <option value="10">مناطق نائية ١٠٪</option>
+                            <option value="11">مناطق نائية ١١٪</option>
+                            <option value="12">مناطق نائية ١٢٪</option>
+                            <option value="13">مناطق نائية ١٣٪</option>
+                            <option value="14">مناطق نائية ١٤٪</option>
+                            <option value="15">مناطق نائية ١٥٪</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">مكافأة الدراسة</label>
+                        <select id="pStudy" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="ابتدائية">ابتدائية (٢٠٠ ريال)</option>
+                            <option value="متوسطة">متوسطة (٢٥٠ ريال)</option>
+                            <option value="ثانوية">ثانوية (٣٠٠ ريال)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sub-panel: Mode A (By Date) -->
+                <div id="payrollDateInputs" class="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-3.5 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info"></i>
+                            أدخل التاريخ (يوم-شهر-سنة مثل <code class="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono">٠٤-٠٤-١٤٤١</code> أو رقم متواصل <code class="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono">١٤٤١٠٤٠٤</code>)
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">الفترة من (بداية المسير)</label>
+                            <input type="text" id="pDateStart" oninput="window.calculatePayroll()" placeholder="٠٤-٠٤-١٤٤١ أو ١٤٤١٠٤٠٤" class="w-full bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-xl px-3 py-2 text-sm font-bold font-mono text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <div id="pDateStartInfo" class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 text-center font-bold"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">الفترة إلى (نهاية المسير)</label>
+                            <input type="text" id="pDateEnd" oninput="window.calculatePayroll()" placeholder="٠١-٠٣-٢٠٢٦ أو ٢٠٢٦٠٣٠١" class="w-full bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-xl px-3 py-2 text-sm font-bold font-mono text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <div id="pDateEndInfo" class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 text-center font-bold"></div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Banner -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                        <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-emerald-200 dark:border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400">الأيام الثابتة المحسوبة</div>
+                            <div id="dispFixedDays" class="text-lg font-black text-emerald-700 dark:text-emerald-400">٢٢٥١</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-emerald-200 dark:border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400">الأيام الفعلية (للميدان)</div>
+                            <div id="dispActualDays" class="text-lg font-black text-amber-600 dark:text-amber-400">٢٢٨٣</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-emerald-200 dark:border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400">عدد الدرجات بالفترة</div>
+                            <div id="dispDegreeCount" class="text-lg font-black text-slate-800 dark:text-slate-200">٨</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-emerald-200 dark:border-slate-800 text-center flex flex-col justify-center">
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400">حالة التدرج</div>
+                            <div id="dispDegreeStatus" class="text-xs font-extrabold text-amber-600 dark:text-amber-400">أكثر من ٣ درجات</div>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown -->
+                    <div class="bg-white/80 dark:bg-slate-900/80 rounded-xl p-2.5 border border-emerald-100 dark:border-slate-800 text-xs grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="flex items-center justify-between px-2 py-1 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <span class="text-slate-500">درجة بداية المسير: <strong id="progDegStart" class="text-slate-800 dark:text-white">-٦</strong></span>
+                            <span class="text-emerald-700 dark:text-emerald-400 font-bold"><span id="progDaysStart">٣٠</span> يوم</span>
+                        </div>
+                        <div class="flex items-center justify-between px-2 py-1 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <span class="text-slate-500">ما بين الدرجتين: <strong id="progDegMid" class="text-slate-800 dark:text-white">٠</strong></span>
+                            <span class="text-emerald-700 dark:text-emerald-400 font-bold"><span id="progDaysMid">٠</span> يوم</span>
+                        </div>
+                        <div class="flex items-center justify-between px-2 py-1 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <span class="text-slate-500">درجة نهاية المسير: <strong id="progDegEnd" class="text-slate-800 dark:text-white">١</strong></span>
+                            <span class="text-emerald-700 dark:text-emerald-400 font-bold"><span id="progDaysEnd">٦١</span> يوم</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-panel: Mode B (By Number of Days) -->
+                <div id="payrollDaysInputs" class="hidden bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-3.5 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">عدد الأيام الثابتة (للرواتب والعلاوات)</label>
+                            <div class="flex gap-2">
+                                <input type="text" inputmode="numeric" id="pInputFixedDays" value="١" oninput="window.syncDaysInput('fixed')" class="w-full bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 rounded-xl px-3 py-2 text-base font-black text-center focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono">
+                                <button type="button" onclick="window.setQuickDays(1)" class="px-3 py-1 bg-amber-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-amber-200">١ يوم</button>
+                                <button type="button" onclick="window.setQuickDays(30)" class="px-3 py-1 bg-amber-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-amber-200">٣٠ يوم</button>
+                                <button type="button" onclick="window.setQuickDays(360)" class="px-3 py-1 bg-amber-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-amber-200">٣٦٠ يوم</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">عدد الأيام الفعلية (ليومية الميدان)</label>
+                            <input type="text" inputmode="numeric" id="pInputActualDays" value="١" oninput="window.calculatePayroll()" class="w-full bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 rounded-xl px-3 py-2 text-base font-black text-center focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono">
+                        </div>
+                    </div>
+
+                    <!-- حاسبة عدد الأشهر الهجرية القديمة مع الميلادية (مطابقة لملف الإكسل بدون الأزرار الإضافية) -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 border border-amber-200 dark:border-slate-800 space-y-3 shadow-xs">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <h3 class="font-extrabold text-xs sm:text-sm text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-calendar-alt text-amber-500"></i>
+                                حاسبة عدد الأشهر الهجرية القديمة مع الميلادية
+                            </h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                            <div>
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                                    <span class="font-bold text-slate-700 dark:text-slate-300">الفترة من (.-١)</span>
+                                    <span class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">الرقم: <strong id="oldMonthStartIdx" class="text-emerald-700 dark:text-emerald-400">٤١</strong></span>
+                                </div>
+                                <select id="oldMonthStart" onchange="window.calcOldMonthsTool()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                    <!-- Populated from exact Excel Col H -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                                    <span class="font-bold text-slate-700 dark:text-slate-300">الفترة إلى (.-٣٠)</span>
+                                    <span class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">الرقم: <strong id="oldMonthEndIdx" class="text-amber-600 dark:text-amber-400">٢٦٨</strong></span>
+                                </div>
+                                <select id="oldMonthEnd" onchange="window.calcOldMonthsTool()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                    <!-- Populated from exact Excel Col J -->
+                                </select>
+                            </div>
+
+                            <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-2.5 flex items-center justify-between">
+                                <div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold">عدد الأشهر المحسوبة</div>
+                                    <div class="text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono">
+                                        <span id="oldMonthsCount">٢٢٧</span> <span class="text-xs font-bold">شهر</span>
+                                        <span class="text-[11px] text-amber-600 dark:text-amber-400 block">(<span id="oldMonthsDays">٦٨١٠</span> يوم)</span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="window.applyOldMonthsDays()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition active:scale-95">
+                                    اعتماد الأيام
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-panel: Mode C (Promotion Difference Calculator - حاسبة فرق الترقية) -->
+                <div id="payrollPromoInputs" class="hidden bg-teal-50/70 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/60 rounded-2xl p-3.5 space-y-4">
+                    <!-- Choice of how to calculate promotion -->
+                    <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-teal-200 dark:border-slate-800 space-y-2">
+                        <div class="text-xs font-extrabold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                            <span>طريقة تحديد الرتبة والدرجة للترقية:</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="button" id="promoDirBtnFromOld" onclick="window.setPromoInputMethod('fromOld')" class="py-2 px-3 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow transition">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                <span>إدخال الرتبة السابقة (وحساب الجديدة تلقائياً)</span>
+                            </button>
+                            <button type="button" id="promoDirBtnFromNew" onclick="window.setPromoInputMethod('fromNew')" class="py-2 px-3 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+                                <i class="fa-solid fa-arrow-right"></i>
+                                <span>إدخال الرتبة الجديدة (وحساب السابقة تلقائياً)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Old Rank vs New Rank Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Old Rank Box -->
+                        <div id="promoOldBox" class="bg-white dark:bg-slate-900 p-3.5 rounded-xl border-2 border-emerald-500 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                                    الرتبة والدرجة السابقة (قبل الترقية)
+                                </span>
+                                <span id="promoOldBadge" class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">إدخال يدوي</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] text-slate-500 mb-1">الرتبة السابقة</label>
+                                    <select id="promoOldRank" onchange="window.onPromoRankChange('old')" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-bold"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-500 mb-1">الدرجة السابقة</label>
+                                    <select id="promoOldDegree" onchange="window.onPromoRankChange('old')" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-bold"></select>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                                <span class="text-slate-500">الراتب الأساسي السابق:</span>
+                                <strong id="promoOldBasicDisp" class="text-sm font-black text-slate-800 dark:text-white font-mono">٤,٥٥٥.٠٠</strong>
+                            </div>
+                        </div>
+
+                        <!-- New Rank Box -->
+                        <div id="promoNewBox" class="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    الرتبة والدرجة الجديدة (بعد الترقية)
+                                </span>
+                                <span id="promoNewBadge" class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">محسوب تلقائياً (أول مربوط أعلى)</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] text-slate-500 mb-1">الرتبة الجديدة</label>
+                                    <select id="promoNewRank" onchange="window.onPromoRankChange('new')" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-bold"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-500 mb-1">الدرجة الجديدة</label>
+                                    <select id="promoNewDegree" onchange="window.onPromoRankChange('new')" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-bold"></select>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                                <span class="text-slate-500">الراتب الأساسي الجديد:</span>
+                                <strong id="promoNewBasicDisp" class="text-sm font-black text-emerald-700 dark:text-emerald-400 font-mono">٤,٦٤٠.٠٠</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Allowances Settings for Promotion -->
+                    <div class="grid grid-cols-2 gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">فئة العلاوة الفنية</label>
+                            <select id="promoTech" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold">
+                                <option value="1">علاوة فنية ١</option>
+                                <option value="2">علاوة فنية ٢</option>
+                                <option value="3">علاوة فنية ٣</option>
+                                <option value="4">علاوة فنية ٤</option>
+                                <option value="5">علاوة فنية ٥</option>
+                                <option value="6">علاوة فنية ٦</option>
+                                <option value="7">علاوة فنية ٧</option>
+                                <option value="8">علاوة فنية ٨</option>
+                                <option value="9">علاوة فنية ٩</option>
+                                <option value="10">علاوة فنية ١٠</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">نسبة المناطق النائية</label>
+                            <select id="promoRemote" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold">
+                                <option value="6">مناطق نائية ٦٪</option>
+                                <option value="7">مناطق نائية ٧٪</option>
+                                <option value="8">مناطق نائية ٨٪</option>
+                                <option value="9">مناطق نائية ٩٪</option>
+                                <option value="10">مناطق نائية ١٠٪</option>
+                                <option value="11">مناطق نائية ١١٪</option>
+                                <option value="12">مناطق نائية ١٢٪</option>
+                                <option value="13">مناطق نائية ١٣٪</option>
+                                <option value="14">مناطق نائية ١٤٪</option>
+                                <option value="15">مناطق نائية ١٥٪</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Promotion Dates & Days -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">تاريخ الترقية (من)</label>
+                            <input type="text" id="promoDateStart" oninput="window.onPromoDateInput()" placeholder="٢١-٠٢-٢٠٢٦" class="w-full bg-slate-50 dark:bg-slate-800 border border-teal-300 dark:border-teal-700 rounded-xl px-3 py-2 text-sm font-bold font-mono text-center">
+                            <div id="promoDateStartInfo" class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 text-center font-bold"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">نهاية الفترة (إلى)</label>
+                            <input type="text" id="promoDateEnd" oninput="window.onPromoDateInput()" placeholder="٢٨-٠٢-٢٠٢٦" class="w-full bg-slate-50 dark:bg-slate-800 border border-teal-300 dark:border-teal-700 rounded-xl px-3 py-2 text-sm font-bold font-mono text-center">
+                            <div id="promoDateEndInfo" class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 text-center font-bold"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">عدد أيام الاستحقاق (ثابتة)</label>
+                            <input type="text" inputmode="numeric" id="promoFixedDays" value="١٠" oninput="window.calculatePayroll()" class="w-full bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-500 rounded-xl px-3 py-2 text-base font-black text-emerald-800 dark:text-emerald-300 text-center font-mono">
+                            <div class="text-[10px] text-slate-400 mt-1 text-center">تُحسب من التواريخ أو عدلها يدوياً</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Bar -->
+            <div class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white rounded-2xl p-4 shadow-md flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <div class="text-xs text-emerald-200 font-medium flex items-center gap-1.5">
+                        <i class="fa-solid fa-check-double text-amber-400"></i>
+                        <span>صافي العلاوات والبدلات المحددة</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-amber-400 mt-0.5 tracking-tight flex items-center gap-1.5">
+                        <span id="customNetTotal">٠.٠٠</span>
+                        <span id="customNetCurrency" class="text-amber-300 text-xl"></span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="window.toggleAllItems(true)" class="text-xs bg-emerald-700/70 hover:bg-emerald-700 px-3 py-2 rounded-xl font-bold transition">تحديد الكل</button>
+                    <button type="button" onclick="window.toggleAllItems(false)" class="text-xs bg-emerald-950/60 hover:bg-emerald-950 px-3 py-2 rounded-xl font-bold transition">إلغاء الكل</button>
+                    <button type="button" onclick="window.copyPayrollReport()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1.5 shadow transition active:scale-95">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>نسخ المسير</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="payrollResultsGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div id="payrollItemsCard" class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <h3 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-coins text-emerald-600"></i>
+                            <span id="itemsListHeaderTitle">تفاصيل الفروقات والبدلات والعلاوات</span>
+                        </h3>
+                        <span class="text-[11px] text-slate-400">اضغط لتحديد/استثناء البند</span>
+                    </div>
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800" id="payrollItemsList"></div>
+                </div>
+
+                <div id="payrollSideCards" class="space-y-4">
+                    <!-- Deductions -->
+                    <div id="dedCard" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                        <h3 class="font-extrabold text-sm text-red-600 dark:text-red-400 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                            ملخص الحسومات والتأمينات
+                        </h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between items-center p-2.5 rounded-xl bg-red-50/70 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40">
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200">التأمينات الاجتماعية (٩٪)</div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400">حسم ٩٪ من الراتب الأساسي</div>
+                                </div>
+                                <div id="dedInsurance" class="font-black text-sm text-red-600 dark:text-red-400 font-mono">-٠.٠٠</div>
+                            </div>
+                            <div id="dedExtraGroup" class="space-y-2">
+                                <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div>
+                                        <div class="font-bold text-slate-800 dark:text-slate-200">حسم الابتعاث</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">(حسم إرهاب + حدود نائية)</div>
+                                    </div>
+                                    <div id="dedScholarship" class="font-black text-sm text-slate-800 dark:text-slate-200 font-mono">٠.٠٠</div>
+                                </div>
+                                <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div>
+                                        <div class="font-bold text-slate-800 dark:text-slate-200">حسم التفوق</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">(حسم حاسب + شهادة)</div>
+                                    </div>
+                                    <div id="dedExcellence" class="font-black text-sm text-slate-800 dark:text-slate-200 font-mono">٠.٠٠</div>
+                                </div>
+                                <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div>
+                                        <div class="font-bold text-slate-800 dark:text-slate-200">حسم الانتداب</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">(حسم إعاشة + ميدان)</div>
+                                    </div>
+                                    <div id="dedSecondment" class="font-black text-sm text-slate-800 dark:text-slate-200 font-mono">٠.٠٠</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Article 13 (Selectable Items) -->
+                    <div id="art13Card" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <h3 class="font-extrabold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                                حساب مادة (١٣) - النصف
+                            </h3>
+                            <span class="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-lg font-bold">اختر البنود</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div id="art13Box-salary" onclick="window.toggleArt13Item('salary')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300 font-bold">نصف الراتب</span>
+                                    <span id="art13Check-salary" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+                                </div>
+                                <div id="art13Salary" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
+                            </div>
+                            <div id="art13Box-security" onclick="window.toggleArt13Item('security')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300 font-bold">نصف علاوة الأمن</span>
+                                    <span id="art13Check-security" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+                                </div>
+                                <div id="art13Security" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
+                            </div>
+                            <div id="art13Box-transport" onclick="window.toggleArt13Item('transport')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300 font-bold">نصف بدل نقل</span>
+                                    <span id="art13Check-transport" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+                                </div>
+                                <div id="art13Transport" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
+                            </div>
+                            <div id="art13Box-study" onclick="window.toggleArt13Item('study')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300 font-bold">نصف شهادة دراسية</span>
+                                    <span id="art13Check-study" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+                                </div>
+                                <div id="art13Study" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-extrabold text-amber-900 dark:text-amber-300">إجمالي مبلغ مادة (١٣) المحدد</div>
+                                <div class="text-[10px] text-amber-700/80 dark:text-amber-400/80">اضغط على أي بند أعلاه لإضافته أو استثنائه</div>
+                            </div>
+                            <div id="art13Total" class="font-black text-base text-amber-600 dark:text-amber-400 font-mono">٠.٠٠</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             TAB 2: محول التاريخ وحساب عدد الأيام
+             ========================================== -->
+        <section id="tab-dates" class="tab-content space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center justify-between">
+                        <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-repeat"></i>
+                            محول التاريخ الذكي (هجري ⇄ ميلادي)
+                        </h2>
+                        <button type="button" onclick="window.setTodayInConverter()" class="text-xs bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 px-2.5 py-1 rounded-lg font-bold">تاريخ اليوم</button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">أدخل التاريخ (يوم-شهر-سنة مثل ٠٤-٠٤-١٤٤١ أو ١٤٤١٠٤٠٤)</label>
+                        <input type="text" id="convInput" oninput="window.runSingleDateConvert()" class="w-full bg-slate-50 dark:bg-slate-800 border-2 border-emerald-500/60 rounded-xl px-4 py-3 text-base font-black font-mono text-center focus:outline-none">
+                        <div id="convInputSubNote" class="text-xs text-emerald-700 dark:text-emerald-400 mt-1.5 text-center font-bold"></div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 pt-1">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">النظام</label>
+                            <select id="convCalType" onchange="window.onConvCalTypeChange()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold">
+                                <option value="hijri">هجري</option>
+                                <option value="greg">ميلادي</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">اليوم</label>
+                            <select id="convDay" onchange="window.syncFromDropdowns()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold"></select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">الشهر</label>
+                            <select id="convMonth" onchange="window.syncFromDropdowns()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold"></select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">السنة</label>
+                            <input type="text" inputmode="numeric" id="convYear" value="١٤٤١" oninput="window.syncFromDropdowns()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold text-center font-mono">
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800/70 rounded-2xl p-4 border border-emerald-200 dark:border-slate-700 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-500">اليوم:</span>
+                            <span id="convResWeekday" class="font-extrabold text-sm bg-amber-500 text-slate-950 px-3 py-0.5 rounded-full">الأحد</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 text-center">
+                                <div class="text-[11px] text-slate-500">التاريخ الهجري (يوم-شهر-سنة)</div>
+                                <div id="convResHijri" class="font-black text-base text-emerald-700 font-mono mt-1">٠٤-٠٤-١٤٤١</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 text-center">
+                                <div class="text-[11px] text-slate-500">التاريخ الميلادي (يوم-شهر-سنة)</div>
+                                <div id="convResGreg" class="font-black text-base text-amber-600 font-mono mt-1">٠١-١٢-٢٠١٩</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculate Days -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center justify-between">
+                        <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-week"></i>
+                            حساب عدد الأيام بين تاريخين
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">من</label>
+                            <input type="text" id="diffDate1" oninput="window.calcDateDifferenceTab()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold font-mono text-center">
+                            <div id="diffDate1Sub" class="text-[11px] text-emerald-600 mt-1 text-center font-bold"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">إلى</label>
+                            <input type="text" id="diffDate2" oninput="window.calcDateDifferenceTab()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold font-mono text-center">
+                            <div id="diffDate2Sub" class="text-[11px] text-emerald-600 mt-1 text-center font-bold"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 p-3.5 rounded-2xl text-center">
+                            <div class="text-xs font-bold text-emerald-900 dark:text-emerald-300">الأيام الثابتة (٣٠ يوم)</div>
+                            <div id="diffResFixed" class="text-2xl font-black text-emerald-700 mt-1 font-mono">٢٢٥١</div>
+                        </div>
+                        <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-3.5 rounded-2xl text-center">
+                            <div class="text-xs font-bold text-amber-900 dark:text-amber-300">الأيام الفعلية التقويمية</div>
+                            <div id="diffResActual" class="text-2xl font-black text-amber-600 mt-1 font-mono">٢٢٨٣</div>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="window.transferDatesToPayroll()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>نقل هذه الفترة إلى حاسبة المسيرات</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             TAB 3: حاسبة بدل المناطق النائية (%)
+             ========================================== -->
+        <section id="tab-remote" class="tab-content space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 sm:p-5 space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h2 class="font-extrabold text-base sm:text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-percent bg-amber-500 text-slate-950 w-6 h-6 rounded-lg flex items-center justify-center text-xs"></i>
+                        حاسبة بدل المناطق النائية والنسب المئوية (من أول مربوط)
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">أدخل النسبة المئوية (مثل ١٢٪) ليتم حسابها فوراً من الراتب الأساسي للدرجة الأولى لكل رتبة</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">أدخل النسبة المئوية (٪) المطلوبة:</label>
+                        <div class="relative flex items-center">
+                            <input type="text" inputmode="decimal" id="remoteCustomPercent" value="١٢" oninput="window.calculateRemoteTab()" placeholder="مثال: ١٢" class="w-full bg-emerald-50/60 dark:bg-slate-800 border-2 border-emerald-500 rounded-2xl px-4 py-3 text-2xl font-black text-emerald-800 dark:text-emerald-300 text-center font-mono focus:outline-none">
+                            <span class="absolute left-4 text-xl font-black text-emerald-600">٪</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">عدد الأيام:</label>
+                        <div class="flex gap-2">
+                            <input type="text" inputmode="numeric" id="remoteCustomDays" value="٣٠" oninput="window.calculateRemoteTab()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-3 text-xl font-black text-center font-mono focus:outline-none">
+                            <button type="button" onclick="document.getElementById('remoteCustomDays').value='٣٠';window.calculateRemoteTab();" class="px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">شهر</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="window.setRemotePct(6)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">٦٪</button>
+                    <button type="button" onclick="window.setRemotePct(8)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">٨٪</button>
+                    <button type="button" onclick="window.setRemotePct(10)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">١٠٪</button>
+                    <button type="button" onclick="window.setRemotePct(12)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 text-white transition">١٢٪</button>
+                    <button type="button" onclick="window.setRemotePct(15)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">١٥٪</button>
+                    <button type="button" onclick="window.setRemotePct(25)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-500 transition">٢٥٪ (إرهاب)</button>
+                    <button type="button" onclick="window.setRemotePct(35)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-500 transition">٣٥٪ (حدود نائية)</button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div class="px-4 py-3 bg-emerald-900 text-white flex items-center justify-between">
+                    <h3 class="font-extrabold text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-amber-400"></i>
+                        <span>نتيجة الحسبة لجميع الرتب (بنسبة <span id="remoteHeaderPct" class="text-amber-300">١٢٪</span>)</span>
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs border-b">
+                            <tr>
+                                <th class="py-3 px-4 font-extrabold">الرتبة</th>
+                                <th class="py-3 px-4 font-extrabold text-center">الأساسي (الدرجة ١)</th>
+                                <th class="py-3 px-4 font-extrabold text-center text-emerald-700">البدل الشهري</th>
+                                <th class="py-3 px-4 font-extrabold text-center">اليومية</th>
+                                <th class="py-3 px-4 font-extrabold text-center text-amber-600">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody id="remoteRanksTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             TAB 4: جدول الراتب الأساسي والعلاوات الفنية
+             ========================================== -->
+        <section id="tab-tables" class="tab-content space-y-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400">جدول الراتب الأساسي لجميع الرتب العسكرية (الأفراد)</h2>
+                    <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-bold">
+                        <button type="button" onclick="window.setSalaryTableMode('basic')" id="stBtn-basic" class="px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow">الراتب الأساسي</button>
+                        <button type="button" onclick="window.setSalaryTableMode('sec25')" id="stBtn-sec25" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300">علاوة الأمن ٢٥٪</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-center text-xs sm:text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-900 text-white">
+                                <th class="py-3 px-3 text-right font-extrabold sticky-col bg-emerald-950 min-w-[110px]">الرتبة</th>
+                                <th class="py-2.5 px-2 font-bold bg-amber-500 text-slate-950">العلاوة</th>
+                                <th class="py-2.5 px-2.5">١</th><th class="py-2.5 px-2.5">٢</th><th class="py-2.5 px-2.5">٣</th><th class="py-2.5 px-2.5">٤</th><th class="py-2.5 px-2.5">٥</th><th class="py-2.5 px-2.5">٦</th><th class="py-2.5 px-2.5">٧</th><th class="py-2.5 px-2.5">٨</th><th class="py-2.5 px-2.5">٩</th><th class="py-2.5 px-2.5">١٠</th><th class="py-2.5 px-2.5">١١</th><th class="py-2.5 px-2.5">١٢</th><th class="py-2.5 px-2.5">١٣</th><th class="py-2.5 px-2.5">١٤</th><th class="py-2.5 px-2.5">١٥</th>
+                            </tr>
+                        </thead>
+                        <tbody id="basicSalaryTableBody" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Technical Allowances Table -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+                    <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400">جدول العلاوات الفنية بجميع الدرجات (الفئات ١ إلى ١٠)</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-center text-xs sm:text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-white">
+                                <th class="py-3 px-3 text-right font-extrabold sticky-col bg-slate-900 min-w-[110px]">الرتبة</th>
+                                <th class="py-2.5 px-2.5">فنية ١</th><th class="py-2.5 px-2.5">فنية ٢</th><th class="py-2.5 px-2.5">فنية ٣</th><th class="py-2.5 px-2.5">فنية ٤</th><th class="py-2.5 px-2.5">فنية ٥</th><th class="py-2.5 px-2.5">فنية ٦</th><th class="py-2.5 px-2.5">فنية ٧</th><th class="py-2.5 px-2.5">فنية ٨</th><th class="py-2.5 px-2.5">فنية ٩</th><th class="py-2.5 px-2.5">فنية ١٠</th>
+                            </tr>
+                        </thead>
+                        <tbody id="techAllowanceTableBody" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-8 mb-4 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1.5 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="font-extrabold text-emerald-800 dark:text-emerald-400 text-sm mb-2">وزارة الحرس الوطني • وكالة شؤون الأفواج • شعبة الرواتب</div>
+            <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-bold">
+                <span>تنفيذ: <strong class="text-slate-800 dark:text-slate-200">احمد المدعج</strong></span>
+                <span class="text-slate-300 dark:text-slate-700">|</span>
+                <span>تطوير: <strong class="text-slate-800 dark:text-slate-200">نايف معلث الحربي</strong></span>
+            </div>
+            <div class="font-bold pt-0.5">
+                إشراف: <strong class="text-slate-800 dark:text-slate-200">محمد جبيلان الرشيدي - فايز صنهوت العتيبي</strong>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Bottom Navigation Bar for Mobile -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 shadow-2xl">
+        <div class="grid grid-cols-4 h-16">
+            <button type="button" onclick="window.switchTab('tab-payroll')" id="mob-tab-payroll" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-emerald-700 dark:text-emerald-400 font-extrabold">
+                <i class="fa-solid fa-calculator text-lg"></i>
+                <span class="text-[11px]">حاسبة المسيرات</span>
+            </button>
+            <button type="button" onclick="window.switchTab('tab-dates')" id="mob-tab-dates" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
+                <i class="fa-solid fa-calendar-days text-lg"></i>
+                <span class="text-[11px]">محول التاريخ</span>
+            </button>
+            <button type="button" onclick="window.switchTab('tab-remote')" id="mob-tab-remote" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
+                <i class="fa-solid fa-percent text-lg"></i>
+                <span class="text-[11px]">المناطق النائية</span>
+            </button>
+            <button type="button" onclick="window.switchTab('tab-tables')" id="mob-tab-tables" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
+                <i class="fa-solid fa-table-list text-lg"></i>
+                <span class="text-[11px]">جدول الرواتب</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Cell Inspector Modal -->
+    <div id="cellModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 id="cellModalTitle" class="font-extrabold text-base text-emerald-800 dark:text-emerald-400">تفاصيل الرتبة</h3>
+                <button type="button" onclick="window.closeCellModal()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="cellModalBody" class="space-y-2 text-xs sm:text-sm"></div>
+            <button type="button" onclick="window.useRankDegreeInCalculator()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold text-sm shadow">فتح في حاسبة المسيرات</button>
+        </div>
+    </div>
+
+    <!-- APK Guide Modal -->
+    <div id="apkModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 shadow-2xl border space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-brands fa-android text-2xl text-emerald-600"></i>
+                    <h3 class="font-extrabold text-base text-slate-800 dark:text-white">طريقة تثبيت التطبيق وتحويله لـ APK</h3>
+                </div>
+                <button type="button" onclick="window.closeApkModal()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border">
+                    <div class="font-extrabold text-emerald-900 dark:text-emerald-300 mb-1">الطريقة 1: تحويله إلى ملف APK عبر WebIntoApp</div>
+                    <p>ارفع ملف <code>index.html</code> على موقع مجاني مثل <strong>WebIntoApp.com</strong> لتحميل تطبيق الأندرويد (.apk) فوراً.</p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border">
+                    <div class="font-extrabold text-amber-900 dark:text-amber-300 mb-1">الطريقة 2: التثبيت المباشر بدون APK</div>
+                    <p>افتح الرابط في متصفح Chrome للأندرويد، اضغط (⋮) ثم اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong>.</p>
+                </div>
+            </div>
+            <button type="button" onclick="window.closeApkModal()" class="w-full py-2.5 bg-slate-800 text-white rounded-xl font-bold text-sm">حسناً، فهمت</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-bold flex items-center gap-2 border border-emerald-500/40">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">تم النسخ بنجاح</span>
+    </div>
+
+    
+</body>
+</html>
