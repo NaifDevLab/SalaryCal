@@ -129,9 +129,10 @@ tailwind.config = {
         }
 
         function parseNum(val, fallback = 0) {
-            const clean = toWesternDigits(val).replace(/[^0-9.-]/g, '');
-            const n = parseFloat(clean);
-            return isNaN(n) ? fallback : n;
+            const clean = toWesternDigits(val).replace(/[,\u066c\s]/g, '').replace(/\u066b/g, '.');
+            if (!/^-?(?:\d+\.?\d*|\.\d+)$/.test(clean)) return fallback;
+            const n = Number(clean);
+            return Number.isFinite(n) ? n : fallback;
         }
 
         function formatMoney(num, compact = false) {
@@ -221,8 +222,7 @@ tailwind.config = {
             return { ...hijri, formatted };
         }
 
-        // تحليل التاريخ المدخل (يدعم يوم-شهر-سنة من اليمين لليسار، أو سنة-شهر-يوم، أو 8 أرقام متواصلة)
-        // ويعيد دائماً التنسيق يبدأ باليوم ثم الشهر ثم السنة (DD-MM-YYYY)
+        // تحليل التاريخ المدخل بصيغة يوم/شهر/سنة أو سنة/شهر/يوم أو 8 أرقام متواصلة.
         function parseFlexibleDate(rawStr) {
             if (!rawStr) return null;
             const clean = toWesternDigits(rawStr).trim();
@@ -243,7 +243,7 @@ tailwind.config = {
                 }
             } else {
                 const parts = clean.split(/[-/.\\\s]+/);
-                if (parts.length !== 3) return null;
+                if (parts.length !== 3 || parts.some(part => !/^\d+$/.test(part))) return null;
                 const p0 = parseInt(parts[0], 10);
                 const p1 = parseInt(parts[1], 10);
                 const p2 = parseInt(parts[2], 10);
@@ -260,15 +260,17 @@ tailwind.config = {
             const isHijriInput = (y >= 1300 && y <= 1600);
             if (isHijriInput) {
                 gregDate = hijriToGregorian(y, m, d);
-                hijriParts = { hy: y, hm: m, hd: d };
+                hijriParts = getHijriPartsFromGreg(gregDate);
+                if (hijriParts.hy !== y || hijriParts.hm !== m || hijriParts.hd !== d) return null;
             } else {
                 gregDate = new Date(Date.UTC(y, m - 1, d));
+                if (gregDate.getUTCFullYear() !== y || gregDate.getUTCMonth() + 1 !== m || gregDate.getUTCDate() !== d) return null;
                 hijriParts = getHijriPartsFromGreg(gregDate);
             }
+            if (!Number.isFinite(gregDate.getTime())) return null;
             const gy = gregDate.getUTCFullYear(), gm = gregDate.getUTCMonth() + 1, gd = gregDate.getUTCDate();
             const pad = n => String(n).padStart(2, '0');
 
-            // التنسيق المعتمد: يبدأ من اليمين باليوم ثم الشهر ثم السنة (DD-MM-YYYY)
             const gregFormatted = toIndianDigits(`${pad(gd)}-${pad(gm)}-${gy}`);
             const hijriFormatted = toIndianDigits(`${pad(hijriParts.hd)}-${pad(hijriParts.hm)}-${hijriParts.hy}`);
             const weekday = WEEKDAYS_AR[gregDate.getUTCDay()];
@@ -290,23 +292,54 @@ tailwind.config = {
             };
         }
 
+        function updateDateInfo(inputId, infoId, parsedDate) {
+            const input = document.getElementById(inputId);
+            const info = document.getElementById(infoId);
+            const isValid = !!parsedDate;
+            info.textContent = isValid
+                ? parsedDate.oppositeNote
+                : (input.value.trim() ? 'تاريخ غير صالح' : 'أدخل تاريخاً صالحاً');
+            info.classList.toggle('text-red-600', !isValid);
+            info.classList.toggle('dark:text-red-400', !isValid);
+            info.classList.toggle('text-emerald-700', isValid);
+            info.classList.toggle('dark:text-emerald-400', isValid);
+            input.setAttribute('aria-invalid', String(!isValid));
+        }
+
+        function clearInvalidDateResults() {
+            lastFixedDaysCount = 0;
+            lastCalculatedItems = [];
+            lastArt13Values = { salary: 0, security: 0, transport: 0, study: 0 };
+
+            ['dispFixedDays', 'dispActualDays', 'dispDegreeCount',
+                'progDegStart', 'progDaysStart', 'progDegMid', 'progDaysMid',
+                'progDegEnd', 'progDaysEnd'].forEach(id => {
+                document.getElementById(id).textContent = '-';
+            });
+            document.getElementById('dispDegreeStatus').textContent = '-';
+            ['dedInsurance', 'dedScholarship', 'dedExcellence', 'dedSecondment'].forEach(id => {
+                document.getElementById(id).innerHTML = formatWithSAR(0);
+            });
+            renderArt13Section();
+            renderPayrollItemsList();
+        }
+
         function calculateDaysBetween(d1, d2) {
             let start = d1, end = d2;
             if (d1.gregDate.getTime() > d2.gregDate.getTime()) { start = d2; end = d1; }
             const actualDays = Math.round((end.gregDate.getTime() - start.gregDate.getTime()) / 86400000) + 1;
             const yDiff = end.gy - start.gy, mDiff = end.gm - start.gm;
             const totalMonths = yDiff * 12 + mDiff;
-            const sDay = Math.min(start.gd, 30), eDay = Math.min(end.gd, 30);
-            let febBonus = 0;
-            if (end.gm === 2) {
-                const isLeap = (end.gy % 4 === 0 && end.gy % 100 !== 0) || (end.gy % 400 === 0);
-                if (!isLeap && end.gd === 28) febBonus = 2;
-                else if (isLeap && end.gd === 29) febBonus = 1;
-            }
-            const fixedDays = (totalMonths * 30) + (eDay - sDay) + 1 + febBonus;
+            const fixedDay = date => {
+                const lastDayOfFebruary = date.gm === 2
+                    && date.gd === new Date(Date.UTC(date.gy, 2, 0)).getUTCDate();
+                return lastDayOfFebruary ? 30 : Math.min(date.gd, 30);
+            };
+            const sDay = fixedDay(start), eDay = fixedDay(end);
+            const fixedDays = (totalMonths * 30) + (eDay - sDay) + 1;
             const degreeCount = yDiff + 1;
             const daysStartYear = Math.max(0, (12 - start.gm) * 30 + (30 - sDay) + 1);
-            const daysEndYear = (end.gm - 1) * 30 + eDay + febBonus;
+            const daysEndYear = (end.gm - 1) * 30 + eDay;
             return { fixedDays: Math.max(1, fixedDays), actualDays: Math.max(1, actualDays), degreeCount, daysStartYear, daysEndYear, yDiff };
         }
 
@@ -517,7 +550,7 @@ tailwind.config = {
             document.getElementById('pInputActualDays').value = "١";
             document.getElementById('promoDateStart').value = today;
             document.getElementById('promoDateEnd').value = today;
-            document.getElementById('promoFixedDays').value = "١٠";
+            document.getElementById('promoFixedDays').value = "١";
             calculatePayroll();
         }
 
@@ -638,10 +671,15 @@ tailwind.config = {
 
         function selectPayrollCalendarDate(year, month, day) {
             if (!activePayrollDateInput) return;
+            const selectedInputId = activePayrollDateInput;
             document.getElementById(activePayrollDateInput).value = toIndianDigits(
                 `${year}/${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
             );
-            calculatePayroll();
+            if (selectedInputId === 'promoDateStart' || selectedInputId === 'promoDateEnd') {
+                onPromoDateInput();
+            } else {
+                calculatePayroll();
+            }
             closePayrollDatePicker();
         }
 
@@ -712,34 +750,37 @@ tailwind.config = {
             if (currentPayrollMode === 'date') {
                 const dStart = parseFlexibleDate(document.getElementById('pDateStart').value);
                 const dEnd = parseFlexibleDate(document.getElementById('pDateEnd').value);
-                if (dStart) document.getElementById('pDateStartInfo').textContent = dStart.oppositeNote;
-                if (dEnd) document.getElementById('pDateEndInfo').textContent = dEnd.oppositeNote;
+                updateDateInfo('pDateStart', 'pDateStartInfo', dStart);
+                updateDateInfo('pDateEnd', 'pDateEndInfo', dEnd);
 
-                if (dStart && dEnd) {
-                    const diff = calculateDaysBetween(dStart, dEnd);
-                    fixedDays = diff.fixedDays; actualDays = diff.actualDays;
-                    document.getElementById('dispFixedDays').textContent = toIndianDigits(fixedDays);
-                    document.getElementById('dispActualDays').textContent = toIndianDigits(actualDays);
-                    document.getElementById('dispDegreeCount').textContent = toIndianDigits(diff.degreeCount);
-                    document.getElementById('dispDegreeStatus').textContent = diff.degreeCount > 3 ? 'أكثر من ٣ درجات' : 'ضمن ٣ درجات';
+                if (!dStart || !dEnd) {
+                    clearInvalidDateResults();
+                    return;
+                }
 
-                    const startDeg = degree - diff.yDiff;
-                    const midDeg = (startDeg === degree || startDeg === degree - 1) ? 0 : (degree - 1);
-                    const midDays = midDeg === 0 ? 0 : 360;
+                const diff = calculateDaysBetween(dStart, dEnd);
+                fixedDays = diff.fixedDays; actualDays = diff.actualDays;
+                document.getElementById('dispFixedDays').textContent = toIndianDigits(fixedDays);
+                document.getElementById('dispActualDays').textContent = toIndianDigits(actualDays);
+                document.getElementById('dispDegreeCount').textContent = toIndianDigits(diff.degreeCount);
+                document.getElementById('dispDegreeStatus').textContent = diff.degreeCount > 3 ? 'أكثر من ٣ درجات' : 'ضمن ٣ درجات';
 
-                    document.getElementById('progDegStart').textContent = toIndianDigits(startDeg);
-                    document.getElementById('progDaysStart').textContent = toIndianDigits(diff.daysStartYear);
-                    document.getElementById('progDegMid').textContent = toIndianDigits(midDeg);
-                    document.getElementById('progDaysMid').textContent = toIndianDigits(midDays);
-                    document.getElementById('progDegEnd').textContent = toIndianDigits(degree);
-                    document.getElementById('progDaysEnd').textContent = toIndianDigits(diff.daysEndYear);
+                const startDeg = degree - diff.yDiff;
+                const midDeg = (startDeg === degree || startDeg === degree - 1) ? 0 : (degree - 1);
+                const midDays = midDeg === 0 ? 0 : 360;
 
-                    if (startDeg >= 1 && diff.degreeCount > 1 && diff.degreeCount <= 3) {
-                        const sSalDaily = (rankObj.salaries[startDeg - 1] || currentSalary) / 30;
-                        const mSalDaily = midDeg >= 1 ? (rankObj.salaries[midDeg - 1] / 30) : 0;
-                        const eSalDaily = currentSalary / 30;
-                        multiStepSalaryTotal = (sSalDaily * diff.daysStartYear) + (mSalDaily * midDays) + (eSalDaily * diff.daysEndYear);
-                    }
+                document.getElementById('progDegStart').textContent = toIndianDigits(startDeg);
+                document.getElementById('progDaysStart').textContent = toIndianDigits(diff.daysStartYear);
+                document.getElementById('progDegMid').textContent = toIndianDigits(midDeg);
+                document.getElementById('progDaysMid').textContent = toIndianDigits(midDays);
+                document.getElementById('progDegEnd').textContent = toIndianDigits(degree);
+                document.getElementById('progDaysEnd').textContent = toIndianDigits(diff.daysEndYear);
+
+                if (startDeg >= 1 && diff.degreeCount > 1 && diff.degreeCount <= 3) {
+                    const sSalDaily = (rankObj.salaries[startDeg - 1] || currentSalary) / 30;
+                    const mSalDaily = midDeg >= 1 ? (rankObj.salaries[midDeg - 1] / 30) : 0;
+                    const eSalDaily = currentSalary / 30;
+                    multiStepSalaryTotal = (sSalDaily * diff.daysStartYear) + (mSalDaily * midDays) + (eSalDaily * diff.daysEndYear);
                 }
             } else {
                 fixedDays = Math.max(1, Math.round(parseNum(document.getElementById('pInputFixedDays').value, 1)));
@@ -807,10 +848,14 @@ tailwind.config = {
 
             const dStart = parseFlexibleDate(document.getElementById('promoDateStart').value);
             const dEnd = parseFlexibleDate(document.getElementById('promoDateEnd').value);
-            if (dStart) document.getElementById('promoDateStartInfo').textContent = dStart.oppositeNote;
-            if (dEnd) document.getElementById('promoDateEndInfo').textContent = dEnd.oppositeNote;
+            updateDateInfo('promoDateStart', 'promoDateStartInfo', dStart);
+            updateDateInfo('promoDateEnd', 'promoDateEndInfo', dEnd);
+            if (!dStart || !dEnd) {
+                clearInvalidDateResults();
+                return;
+            }
 
-            const days = Math.max(1, Math.round(parseNum(document.getElementById('promoFixedDays').value, 10)));
+            const days = Math.max(1, Math.round(parseNum(document.getElementById('promoFixedDays').value, 1)));
             lastFixedDaysCount = days;
 
             const oldRankObj = RANKS_DATA[oldR];
@@ -940,7 +985,19 @@ tailwind.config = {
         function togglePayrollItem(key) { selectedItemsState[key] = !selectedItemsState[key]; renderPayrollItemsList(); }
         function toggleAllItems(selectAll) { Object.keys(selectedItemsState).forEach(k => selectedItemsState[k] = selectAll); renderPayrollItemsList(); }
 
-        function copyPayrollReport() {
+        async function copyPayrollReport() {
+            if (currentPayrollMode === 'date'
+                && (!parseFlexibleDate(document.getElementById('pDateStart').value)
+                    || !parseFlexibleDate(document.getElementById('pDateEnd').value))) {
+                showCopyToast('أدخل تاريخاً صالحاً قبل نسخ التقرير');
+                return;
+            }
+            if (currentPayrollMode === 'promo'
+                && (!parseFlexibleDate(document.getElementById('promoDateStart').value)
+                    || !parseFlexibleDate(document.getElementById('promoDateEnd').value))) {
+                showCopyToast('أدخل تاريخاً صالحاً قبل نسخ التقرير');
+                return;
+            }
             let net = 0;
             let lines = ['📋 *تقرير حاسبة المسيرات*'];
 
@@ -974,13 +1031,41 @@ tailwind.config = {
             lines.push('─────────────────');
             lines.push(`💰 *صافي العلاوات والبدلات المحددة:* ${formatMoney(net)} ${SAR_TEXT_SYMBOL}`);
 
-            const ta = document.createElement('textarea');
-            ta.value = lines.join('\n');
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch(e){}
-            document.body.removeChild(ta);
+            const report = lines.join('\n');
+            let copied = false;
+            let copyError = null;
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                try {
+                    await navigator.clipboard.writeText(report);
+                    copied = true;
+                } catch (error) {
+                    copyError = error;
+                }
+            }
+            if (!copied) {
+                const ta = document.createElement('textarea');
+                ta.value = report;
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    copied = document.execCommand('copy');
+                } catch (error) {
+                    copyError = error;
+                } finally {
+                    document.body.removeChild(ta);
+                }
+            }
+            if (!copied) {
+                if (copyError) console.error('تعذر نسخ التقرير إلى الحافظة:', copyError);
+                showCopyToast('تعذر النسخ، حاول مرة أخرى');
+                return;
+            }
+            showCopyToast('تم النسخ بنجاح');
+        }
+
+        function showCopyToast(message) {
             const t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
             t.classList.remove('hidden');
             setTimeout(() => t.classList.add('hidden'), 2000);
         }
