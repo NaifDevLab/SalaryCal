@@ -106,12 +106,17 @@ tailwind.config = {
             transport: true,
             study: true
         };
+        let art13MergeEnabled = false;
         let lastArt13Values = { salary: 0, security: 0, transport: 0, study: 0 };
 
         let lastCalculatedItems = [];
         let lastFixedDaysCount = 30;
         let inspectedRankIdx = 0;
         let inspectedDegree = 1;
+        let activePayrollDateInput = null;
+        let payrollCalendarType = 'hijri';
+        let payrollCalendarYear = 0;
+        let payrollCalendarMonth = 0;
 
         function toWesternDigits(str) {
             return String(str ?? '')
@@ -504,6 +509,7 @@ tailwind.config = {
                 'oldMonthStart', 'oldMonthEnd'].forEach(id => {
                     document.getElementById(id).selectedIndex = 0;
                 });
+            document.getElementById('pStudy').value = 'ثانوية';
             const today = getTodayHijriDate().formatted;
             document.getElementById('pDateStart').value = today;
             document.getElementById('pDateEnd').value = today;
@@ -515,9 +521,132 @@ tailwind.config = {
             calculatePayroll();
         }
 
+        function openPayrollDatePicker(inputId) {
+            const parsedDate = parseFlexibleDate(document.getElementById(inputId).value);
+            const today = getTodayHijriDate();
+            activePayrollDateInput = inputId;
+            payrollCalendarType = parsedDate ? (parsedDate.isHijriInput ? 'hijri' : 'gregorian') : 'hijri';
+            payrollCalendarYear = parsedDate
+                ? (payrollCalendarType === 'hijri' ? parsedDate.hy : parsedDate.gy)
+                : today.hy;
+            payrollCalendarMonth = parsedDate
+                ? (payrollCalendarType === 'hijri' ? parsedDate.hm : parsedDate.gm)
+                : today.hm;
+            renderPayrollCalendar();
+            document.getElementById('payrollDatePickerModal').classList.remove('hidden');
+        }
+
+        function closePayrollDatePicker() {
+            document.getElementById('payrollDatePickerModal').classList.add('hidden');
+            activePayrollDateInput = null;
+        }
+
+        function setPayrollCalendarType(type) {
+            if (type === payrollCalendarType) return;
+
+            const currentDate = payrollCalendarType === 'hijri'
+                ? hijriToGregorian(payrollCalendarYear, payrollCalendarMonth, 15)
+                : new Date(Date.UTC(payrollCalendarYear, payrollCalendarMonth - 1, 15));
+            payrollCalendarType = type;
+            if (type === 'hijri') {
+                const hijri = getHijriPartsFromGreg(currentDate);
+                payrollCalendarYear = hijri.hy;
+                payrollCalendarMonth = hijri.hm;
+            } else {
+                payrollCalendarYear = currentDate.getUTCFullYear();
+                payrollCalendarMonth = currentDate.getUTCMonth() + 1;
+            }
+            renderPayrollCalendar();
+        }
+
+        function shiftPayrollCalendarMonth(amount) {
+            payrollCalendarMonth += amount;
+            if (payrollCalendarMonth < 1) {
+                payrollCalendarMonth = 12;
+                payrollCalendarYear--;
+            } else if (payrollCalendarMonth > 12) {
+                payrollCalendarMonth = 1;
+                payrollCalendarYear++;
+            }
+            renderPayrollCalendar();
+        }
+
+        function renderPayrollCalendar() {
+            const isHijri = payrollCalendarType === 'hijri';
+            const monthNames = isHijri ? HIJRI_MONTHS : GREG_MONTHS;
+            const firstDate = isHijri
+                ? hijriToGregorian(payrollCalendarYear, payrollCalendarMonth, 1)
+                : new Date(Date.UTC(payrollCalendarYear, payrollCalendarMonth - 1, 1));
+            const nextMonthDate = isHijri
+                ? hijriToGregorian(
+                    payrollCalendarMonth === 12 ? payrollCalendarYear + 1 : payrollCalendarYear,
+                    payrollCalendarMonth === 12 ? 1 : payrollCalendarMonth + 1,
+                    1
+                )
+                : new Date(Date.UTC(payrollCalendarYear, payrollCalendarMonth, 1));
+            const daysInMonth = Math.round((nextMonthDate - firstDate) / 86400000);
+            const weekdayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const selectedDate = activePayrollDateInput
+                ? parseFlexibleDate(document.getElementById(activePayrollDateInput).value)
+                : null;
+
+            document.getElementById('payrollCalendarMonthTitle').textContent =
+                `${monthNames[payrollCalendarMonth - 1]} ${toIndianDigits(payrollCalendarYear)}`;
+            ['hijri', 'gregorian'].forEach(type => {
+                const button = document.getElementById(`payrollCalendar${type === 'hijri' ? 'Hijri' : 'Gregorian'}`);
+                const isSelected = type === payrollCalendarType;
+                button.className = isSelected
+                    ? 'py-2 rounded-lg text-sm font-extrabold bg-emerald-700 text-white shadow'
+                    : 'py-2 rounded-lg text-sm font-extrabold text-slate-600 dark:text-slate-300';
+                button.setAttribute('aria-pressed', String(isSelected));
+            });
+
+            let html = weekdayNames.map(day =>
+                `<div class="py-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">${day}</div>`
+            ).join('');
+            for (let blank = 0; blank < firstDate.getUTCDay(); blank++) {
+                html += '<div aria-hidden="true"></div>';
+            }
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = isHijri
+                    ? hijriToGregorian(payrollCalendarYear, payrollCalendarMonth, day)
+                    : new Date(Date.UTC(payrollCalendarYear, payrollCalendarMonth - 1, day));
+                const isSelected = selectedDate
+                    && selectedDate.gy === date.getUTCFullYear()
+                    && selectedDate.gm === date.getUTCMonth() + 1
+                    && selectedDate.gd === date.getUTCDate();
+                html += `<button type="button" onclick="window.selectPayrollCalendarDate(${payrollCalendarYear},${payrollCalendarMonth},${day})" aria-label="${toIndianDigits(day)} ${monthNames[payrollCalendarMonth - 1]} ${toIndianDigits(payrollCalendarYear)}" class="h-9 rounded-lg text-sm font-bold transition ${isSelected ? 'bg-emerald-700 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-emerald-100 dark:hover:bg-slate-700'}">${toIndianDigits(day)}</button>`;
+            }
+            document.getElementById('payrollCalendarGrid').innerHTML = html;
+        }
+
+        function selectPayrollCalendarDate(year, month, day) {
+            if (!activePayrollDateInput) return;
+            document.getElementById(activePayrollDateInput).value = toIndianDigits(
+                `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`
+            );
+            calculatePayroll();
+            closePayrollDatePicker();
+        }
+
         function toggleArt13Item(key) {
+            if (key !== 'security') return;
             art13SelectedState[key] = !art13SelectedState[key];
             renderArt13Section();
+            if (art13MergeEnabled) renderPayrollItemsList();
+        }
+
+        function toggleArt13Merge() {
+            art13MergeEnabled = !art13MergeEnabled;
+            const button = document.getElementById('art13MergeButton');
+            button.setAttribute('aria-pressed', String(art13MergeEnabled));
+            button.textContent = art13MergeEnabled
+                ? 'إلغاء دمج مادة (١٣) من تفاصيل المسير'
+                : 'دمج مادة (١٣) مع تفاصيل المسير';
+            button.className = art13MergeEnabled
+                ? 'w-full py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-extrabold shadow hover:bg-emerald-600 transition'
+                : 'w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold hover:bg-emerald-100 dark:hover:bg-slate-700 transition';
+            renderPayrollItemsList();
         }
 
         function renderArt13Section() {
@@ -636,7 +765,6 @@ tailwind.config = {
                 { key: 'dedInsurance', label: 'التأمينات الاجتماعية (-٩٪)', sub: '٩٪ من الأساسي', daily: -(dailySalary * 0.09), total: totalInsurance, badge: 'حسم', isNegative: true }
             ];
 
-            renderPayrollItemsList();
             document.getElementById('dedInsurance').innerHTML = formatWithSAR(totalInsurance);
             document.getElementById('dedScholarship').innerHTML = formatWithSAR(totalTerrorism + totalRemoteBorder);
             document.getElementById('dedExcellence').innerHTML = formatWithSAR(totalComputer + totalStudy);
@@ -649,6 +777,7 @@ tailwind.config = {
                 study: totalStudy / 2
             };
             renderArt13Section();
+            renderPayrollItemsList();
         }
 
         // حساب فروقات الترقية فقط (البنود المتغيرة بالترقية دون البنود الثابتة)
@@ -735,10 +864,35 @@ tailwind.config = {
             document.getElementById('dedInsurance').innerHTML = formatWithSAR(diffInsTotal);
         }
 
+        function getPayrollItemsForDisplay() {
+            if (!art13MergeEnabled || currentPayrollMode === 'promo') return lastCalculatedItems;
+
+            const itemKeysByArt13 = {
+                diffSalary: 'salary',
+                diffSecurity: 'security',
+                transport: 'transport',
+                study: 'study'
+            };
+
+            return lastCalculatedItems.map(item => {
+                const art13Key = itemKeysByArt13[item.key];
+                if (!art13Key || !art13SelectedState[art13Key]) return item;
+
+                const total = lastArt13Values[art13Key];
+                return {
+                    ...item,
+                    sub: `${item.sub} | مادة (١٣) - النصف`,
+                    badge: 'مادة ١٣',
+                    total,
+                    daily: total / lastFixedDaysCount
+                };
+            });
+        }
+
         function renderPayrollItemsList() {
             const container = document.getElementById('payrollItemsList');
             let html = '', netSum = 0;
-            lastCalculatedItems.forEach(item => {
+            getPayrollItemsForDisplay().forEach(item => {
                 const checked = !!selectedItemsState[item.key];
                 if (checked) netSum += item.total;
                 const rowBg = checked ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-900/40 opacity-60';
@@ -794,10 +948,11 @@ tailwind.config = {
             }
 
             lines.push('─────────────────');
-            lastCalculatedItems.forEach(item => {
+            getPayrollItemsForDisplay().forEach(item => {
                 if (selectedItemsState[item.key]) {
                     net += item.total;
-                    lines.push(`• ${item.label}: ${formatMoney(item.total)} ${SAR_TEXT_SYMBOL}`);
+                    const source = item.badge === 'مادة ١٣' ? ' (مادة ١٣ - النصف)' : '';
+                    lines.push(`• ${item.label}${source}: ${formatMoney(item.total)} ${SAR_TEXT_SYMBOL}`);
                 }
             });
             lines.push('─────────────────');
@@ -912,9 +1067,21 @@ tailwind.config = {
             calculateRemoteTab();
         }
 
+        function updateRemotePctButtons(pct) {
+            document.querySelectorAll('[data-remote-pct]').forEach(button => {
+                const isSelected = Number(button.dataset.remotePct) === pct;
+                const isSpecialRate = Number(button.dataset.remotePct) >= 25;
+                button.setAttribute('aria-pressed', String(isSelected));
+                button.className = isSelected
+                    ? 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 text-white transition'
+                    : `px-3 py-1.5 rounded-xl text-xs font-extrabold ${isSpecialRate ? 'bg-amber-100 text-amber-800 hover:bg-amber-500' : 'bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white'} transition`;
+            });
+        }
+
         function calculateRemoteTab() {
             const pct = parseNum(document.getElementById('remoteCustomPercent').value, 0);
             const days = Math.max(1, Math.round(parseNum(document.getElementById('remoteCustomDays').value, 30)));
+            updateRemotePctButtons(pct);
             document.getElementById('remoteHeaderPct').textContent = `${toIndianDigits(pct)}٪`;
             
             let html = '';
@@ -1023,10 +1190,16 @@ tailwind.config = {
         window.calcOldMonthsTool = calcOldMonthsTool;
         window.applyOldMonthsDays = applyOldMonthsDays;
         window.resetPayrollInputs = resetPayrollInputs;
+        window.openPayrollDatePicker = openPayrollDatePicker;
+        window.closePayrollDatePicker = closePayrollDatePicker;
+        window.setPayrollCalendarType = setPayrollCalendarType;
+        window.shiftPayrollCalendarMonth = shiftPayrollCalendarMonth;
+        window.selectPayrollCalendarDate = selectPayrollCalendarDate;
         window.calculatePayroll = calculatePayroll;
         window.togglePayrollItem = togglePayrollItem;
         window.toggleAllItems = toggleAllItems;
         window.toggleArt13Item = toggleArt13Item;
+        window.toggleArt13Merge = toggleArt13Merge;
         window.copyPayrollReport = copyPayrollReport;
         window.onConvCalTypeChange = onConvCalTypeChange;
         window.runSingleDateConvert = runSingleDateConvert;
@@ -1045,6 +1218,10 @@ tailwind.config = {
         window.closeApkModal = closeApkModal;
 
         window.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('keydown', event => {
+                if (event.key === 'Escape') closePayrollDatePicker();
+            });
+
             const rankOptionsHtml = RANKS_DATA.map((r, i) => `<option value="${i}">${r.name}</option>`).join('');
             document.getElementById('pRank').innerHTML = rankOptionsHtml;
             document.getElementById('promoOldRank').innerHTML = rankOptionsHtml;

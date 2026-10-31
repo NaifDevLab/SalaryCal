@@ -25,12 +25,11 @@
         <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md text-slate-950 font-black text-xl">
-                    <i class="fa-solid fa-shield-halved"></i>
+                    <i class="fa-solid fa-calculator"></i>
                 </div>
                 <div>
                     <h1 class="font-extrabold text-lg sm:text-xl tracking-tight flex items-center gap-2">
                         حاسبة المسيرات والرواتب
-                        <span class="text-[11px] bg-emerald-700/80 text-amber-300 px-2 py-0.5 rounded-full font-bold border border-amber-400/30">2026</span>
                     </h1>
                     <p class="text-xs text-emerald-200/90">وكالة شؤون الأفواج • شعبة الرواتب</p>
                 </div>
@@ -152,7 +151,7 @@
                         <select id="pStudy" onchange="window.calculatePayroll()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                             <option value="ابتدائية">ابتدائية (٢٠٠ ريال)</option>
                             <option value="متوسطة">متوسطة (٢٥٠ ريال)</option>
-                            <option value="ثانوية">ثانوية (٣٠٠ ريال)</option>
+                            <option value="ثانوية" selected>ثانوية (٣٠٠ ريال)</option>
                         </select>
                     </div>
                 </div>
@@ -169,12 +168,22 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">الفترة من (بداية المسير)</label>
-                            <input type="text" id="pDateStart" oninput="window.calculatePayroll()" placeholder="٠٤-٠٤-١٤٤١ أو ١٤٤١٠٤٠٤" class="w-full bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-xl px-3 py-2 text-sm font-bold font-mono text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <div class="relative">
+                                <input type="text" id="pDateStart" oninput="window.calculatePayroll()" placeholder="٠٤-٠٤-١٤٤١ أو ١٤٤١٠٤٠٤" class="w-full bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-xl pl-10 pr-3 py-2 text-sm font-bold font-mono text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <button type="button" onclick="window.openPayrollDatePicker('pDateStart')" aria-label="اختيار تاريخ بداية المسير" title="اختيار التاريخ" class="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </button>
+                            </div>
                             <div id="pDateStartInfo" class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 text-center font-bold"></div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">الفترة إلى (نهاية المسير)</label>
-                            <input type="text" id="pDateEnd" oninput="window.calculatePayroll()" placeholder="٠١-٠٣-٢٠٢٦ أو ٢٠٢٦٠٣٠١" class="w-full bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-xl px-3 py-2 text-sm font-bold font-mono text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <div class="relative">
+                                <input type="text" id="pDateEnd" oninput="window.calculatePayroll()" placeholder="٠١-٠٣-٢٠٢٦ أو ٢٠٢٦٠٣٠١" class="w-full bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-xl pl-10 pr-3 py-2 text-sm font-bold font-mono text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <button type="button" onclick="window.openPayrollDatePicker('pDateEnd')" aria-label="اختيار تاريخ نهاية المسير" title="اختيار التاريخ" class="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </button>
+                            </div>
                             <div id="pDateEndInfo" class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 text-center font-bold"></div>
                         </div>
                     </div>
@@ -491,13 +500,11 @@
                                 <i class="fa-solid fa-scale-balanced"></i>
                                 حساب مادة (١٣) - النصف
                             </h3>
-                            <span class="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-lg font-bold">اختر البنود</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div id="art13Box-salary" onclick="window.toggleArt13Item('salary')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                            <div id="art13Box-salary" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 flex flex-col justify-between">
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-600 dark:text-slate-300 font-bold">نصف الراتب</span>
-                                    <span id="art13Check-salary" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
                                 </div>
                                 <div id="art13Salary" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
                             </div>
@@ -508,17 +515,15 @@
                                 </div>
                                 <div id="art13Security" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
                             </div>
-                            <div id="art13Box-transport" onclick="window.toggleArt13Item('transport')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                            <div id="art13Box-transport" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 flex flex-col justify-between">
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-600 dark:text-slate-300 font-bold">نصف بدل نقل</span>
-                                    <span id="art13Check-transport" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
                                 </div>
                                 <div id="art13Transport" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
                             </div>
-                            <div id="art13Box-study" onclick="window.toggleArt13Item('study')" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 cursor-pointer transition flex flex-col justify-between">
+                            <div id="art13Box-study" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/80 flex flex-col justify-between">
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-600 dark:text-slate-300 font-bold">نصف شهادة دراسية</span>
-                                    <span id="art13Check-study" class="w-4 h-4 rounded bg-amber-500 text-slate-950 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
                                 </div>
                                 <div id="art13Study" class="font-black text-sm text-slate-800 dark:text-white mt-1.5 font-mono">٠.٠٠</div>
                             </div>
@@ -526,9 +531,15 @@
                         <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between">
                             <div>
                                 <div class="text-xs font-extrabold text-amber-900 dark:text-amber-300">إجمالي مبلغ مادة (١٣) المحدد</div>
-                                <div class="text-[10px] text-amber-700/80 dark:text-amber-400/80">اضغط على أي بند أعلاه لإضافته أو استثنائه</div>
+                                <div class="text-[10px] text-amber-700/80 dark:text-amber-400/80">نصف الراتب والنقل والشهادة أساسية، ويمكن تحديد نصف علاوة الأمن أو استثناؤه</div>
                             </div>
                             <div id="art13Total" class="font-black text-base text-amber-600 dark:text-amber-400 font-mono">٠.٠٠</div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <button type="button" id="art13MergeButton" aria-pressed="false" onclick="window.toggleArt13Merge()" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold hover:bg-emerald-100 dark:hover:bg-slate-700 transition">
+                                دمج مادة (١٣) مع تفاصيل المسير
+                            </button>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 text-center">يستبدل مبالغ البنود المتطابقة في التفاصيل بمبالغ النصف المحددة.</p>
                         </div>
                     </div>
                 </div>
@@ -669,13 +680,13 @@
                 </div>
 
                 <div class="flex flex-wrap gap-1.5">
-                    <button type="button" onclick="window.setRemotePct(6)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">٦٪</button>
-                    <button type="button" onclick="window.setRemotePct(8)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">٨٪</button>
-                    <button type="button" onclick="window.setRemotePct(10)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">١٠٪</button>
-                    <button type="button" onclick="window.setRemotePct(12)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 text-white transition">١٢٪</button>
-                    <button type="button" onclick="window.setRemotePct(15)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">١٥٪</button>
-                    <button type="button" onclick="window.setRemotePct(25)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-500 transition">٢٥٪ (إرهاب)</button>
-                    <button type="button" onclick="window.setRemotePct(35)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-500 transition">٣٥٪ (حدود نائية)</button>
+                    <button type="button" data-remote-pct="6" aria-pressed="false" onclick="window.setRemotePct(6)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">٦٪</button>
+                    <button type="button" data-remote-pct="8" aria-pressed="false" onclick="window.setRemotePct(8)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">٨٪</button>
+                    <button type="button" data-remote-pct="10" aria-pressed="false" onclick="window.setRemotePct(10)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">١٠٪</button>
+                    <button type="button" data-remote-pct="12" aria-pressed="true" onclick="window.setRemotePct(12)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 text-white transition">١٢٪</button>
+                    <button type="button" data-remote-pct="15" aria-pressed="false" onclick="window.setRemotePct(15)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white transition">١٥٪</button>
+                    <button type="button" data-remote-pct="25" aria-pressed="false" onclick="window.setRemotePct(25)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-500 transition">٢٥٪ (إرهاب)</button>
+                    <button type="button" data-remote-pct="35" aria-pressed="false" onclick="window.setRemotePct(35)" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-500 transition">٣٥٪ (حدود نائية)</button>
                 </div>
             </div>
 
@@ -753,7 +764,7 @@
         <footer class="mt-8 mb-4 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1.5 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div class="font-extrabold text-emerald-800 dark:text-emerald-400 text-sm mb-2">وزارة الحرس الوطني • وكالة شؤون الأفواج • شعبة الرواتب</div>
             <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-bold">
-                <span>تنفيذ: <strong class="text-slate-800 dark:text-slate-200">احمد المدعج</strong></span>
+                <span>تنفيذ: <strong class="text-slate-800 dark:text-slate-200">أحمد محمد المدعج</strong></span>
                 <span class="text-slate-300 dark:text-slate-700">|</span>
                 <span>تطوير: <strong class="text-slate-800 dark:text-slate-200">نايف معلث الحربي</strong></span>
             </div>
@@ -784,6 +795,26 @@
             </button>
         </div>
     </nav>
+
+    <!-- Payroll Date Picker Modal -->
+    <div id="payrollDatePickerModal" role="dialog" aria-modal="true" aria-labelledby="payrollDatePickerTitle" class="fixed inset-0 z-[60] hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4" onclick="if(event.target===this) window.closePayrollDatePicker()">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-4 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 id="payrollDatePickerTitle" class="font-extrabold text-base text-emerald-800 dark:text-emerald-400">اختيار التاريخ</h3>
+                <button type="button" onclick="window.closePayrollDatePicker()" aria-label="إغلاق التقويم" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+                <button type="button" id="payrollCalendarHijri" onclick="window.setPayrollCalendarType('hijri')" class="py-2 rounded-lg text-sm font-extrabold">هجري</button>
+                <button type="button" id="payrollCalendarGregorian" onclick="window.setPayrollCalendarType('gregorian')" class="py-2 rounded-lg text-sm font-extrabold">ميلادي</button>
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="button" onclick="window.shiftPayrollCalendarMonth(-1)" aria-label="الشهر السابق" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700"><i class="fa-solid fa-chevron-right"></i></button>
+                <div id="payrollCalendarMonthTitle" class="font-extrabold text-emerald-900 dark:text-emerald-300"></div>
+                <button type="button" onclick="window.shiftPayrollCalendarMonth(1)" aria-label="الشهر التالي" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700"><i class="fa-solid fa-chevron-left"></i></button>
+            </div>
+            <div id="payrollCalendarGrid" class="grid grid-cols-7 gap-1 text-center" dir="rtl"></div>
+        </div>
+    </div>
 
     <!-- Cell Inspector Modal -->
     <div id="cellModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
