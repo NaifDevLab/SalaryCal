@@ -50,17 +50,13 @@
                     <i class="fa-solid fa-calculator"></i>
                     <span>1. حاسبة المسيرات الإفرادية</span>
                 </button>
-                <button type="button" onclick="window.switchTab('tab-dates')" id="desk-tab-dates" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span>2. محول وحاسبة التاريخ</span>
-                </button>
                 <button type="button" onclick="window.switchTab('tab-remote')" id="desk-tab-remote" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50">
                     <i class="fa-solid fa-map-location-dot"></i>
-                    <span>3. حاسبة المناطق النائية (%)</span>
+                    <span>2. حاسبة المناطق النائية (%)</span>
                 </button>
                 <button type="button" onclick="window.switchTab('tab-tables')" id="desk-tab-tables" class="nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50">
                     <i class="fa-solid fa-table-list"></i>
-                    <span>4. جدول الرواتب والعلاوات الفنية</span>
+                    <span>3. جدول الرواتب والعلاوات الفنية</span>
                 </button>
             </div>
         </div>
@@ -548,108 +544,6 @@
 
 
         <!-- ==========================================
-             TAB 2: محول التاريخ وحساب عدد الأيام
-             ========================================== -->
-        <section id="tab-dates" class="tab-content space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-                    <div class="border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center justify-between">
-                        <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
-                            <i class="fa-solid fa-repeat"></i>
-                            محول التاريخ الذكي (هجري ⇄ ميلادي)
-                        </h2>
-                        <button type="button" onclick="window.setTodayInConverter()" class="text-xs bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 px-2.5 py-1 rounded-lg font-bold">تاريخ اليوم</button>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">أدخل التاريخ (يوم-شهر-سنة مثل ٠٤-٠٤-١٤٤١ أو ١٤٤١٠٤٠٤)</label>
-                        <input type="text" id="convInput" oninput="window.runSingleDateConvert()" class="w-full bg-slate-50 dark:bg-slate-800 border-2 border-emerald-500/60 rounded-xl px-4 py-3 text-base font-black font-mono text-center focus:outline-none">
-                        <div id="convInputSubNote" class="text-xs text-emerald-700 dark:text-emerald-400 mt-1.5 text-center font-bold"></div>
-                    </div>
-
-                    <div class="grid grid-cols-4 gap-2 pt-1">
-                        <div>
-                            <label class="block text-[11px] text-slate-500 mb-1">النظام</label>
-                            <select id="convCalType" onchange="window.onConvCalTypeChange()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold">
-                                <option value="hijri">هجري</option>
-                                <option value="greg">ميلادي</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] text-slate-500 mb-1">اليوم</label>
-                            <select id="convDay" onchange="window.syncFromDropdowns()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold"></select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] text-slate-500 mb-1">الشهر</label>
-                            <select id="convMonth" onchange="window.syncFromDropdowns()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold"></select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] text-slate-500 mb-1">السنة</label>
-                            <input type="text" inputmode="numeric" id="convYear" value="١٤٤١" oninput="window.syncFromDropdowns()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-bold text-center font-mono">
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800/70 rounded-2xl p-4 border border-emerald-200 dark:border-slate-700 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-500">اليوم:</span>
-                            <span id="convResWeekday" class="font-extrabold text-sm bg-amber-500 text-slate-950 px-3 py-0.5 rounded-full">الأحد</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 pt-1">
-                            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 text-center">
-                                <div class="text-[11px] text-slate-500">التاريخ الهجري (يوم-شهر-سنة)</div>
-                                <div id="convResHijri" class="font-black text-base text-emerald-700 font-mono mt-1">٠٤-٠٤-١٤٤١</div>
-                            </div>
-                            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 text-center">
-                                <div class="text-[11px] text-slate-500">التاريخ الميلادي (يوم-شهر-سنة)</div>
-                                <div id="convResGreg" class="font-black text-base text-amber-600 font-mono mt-1">٠١-١٢-٢٠١٩</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Calculate Days -->
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-                    <div class="border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center justify-between">
-                        <h2 class="font-extrabold text-base text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-week"></i>
-                            حساب عدد الأيام بين تاريخين
-                        </h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">من</label>
-                            <input type="text" id="diffDate1" oninput="window.calcDateDifferenceTab()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold font-mono text-center">
-                            <div id="diffDate1Sub" class="text-[11px] text-emerald-600 mt-1 text-center font-bold"></div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">إلى</label>
-                            <input type="text" id="diffDate2" oninput="window.calcDateDifferenceTab()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold font-mono text-center">
-                            <div id="diffDate2Sub" class="text-[11px] text-emerald-600 mt-1 text-center font-bold"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 p-3.5 rounded-2xl text-center">
-                            <div class="text-xs font-bold text-emerald-900 dark:text-emerald-300">الأيام الثابتة (٣٠ يوم)</div>
-                            <div id="diffResFixed" class="text-2xl font-black text-emerald-700 mt-1 font-mono">٢٢٥١</div>
-                        </div>
-                        <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-3.5 rounded-2xl text-center">
-                            <div class="text-xs font-bold text-amber-900 dark:text-amber-300">الأيام الفعلية التقويمية</div>
-                            <div id="diffResActual" class="text-2xl font-black text-amber-600 mt-1 font-mono">٢٢٨٣</div>
-                        </div>
-                    </div>
-
-                    <button type="button" onclick="window.transferDatesToPayroll()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow transition">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        <span>نقل هذه الفترة إلى حاسبة المسيرات</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ==========================================
              TAB 3: حاسبة بدل المناطق النائية (%)
              ========================================== -->
         <section id="tab-remote" class="tab-content space-y-4">
@@ -776,14 +670,10 @@
 
     <!-- Bottom Navigation Bar for Mobile -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 shadow-2xl">
-        <div class="grid grid-cols-4 h-16">
+        <div class="grid grid-cols-3 h-16">
             <button type="button" onclick="window.switchTab('tab-payroll')" id="mob-tab-payroll" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-emerald-700 dark:text-emerald-400 font-extrabold">
                 <i class="fa-solid fa-calculator text-lg"></i>
                 <span class="text-[11px]">حاسبة المسيرات</span>
-            </button>
-            <button type="button" onclick="window.switchTab('tab-dates')" id="mob-tab-dates" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
-                <i class="fa-solid fa-calendar-days text-lg"></i>
-                <span class="text-[11px]">محول التاريخ</span>
             </button>
             <button type="button" onclick="window.switchTab('tab-remote')" id="mob-tab-remote" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-slate-400 font-medium">
                 <i class="fa-solid fa-percent text-lg"></i>

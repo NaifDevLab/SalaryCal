@@ -969,98 +969,6 @@ tailwind.config = {
             setTimeout(() => t.classList.add('hidden'), 2000);
         }
 
-        // Date Converter & Calc
-        function populateConvMonthsDropdown(calType, selectedMonth) {
-            const monthNames = calType === 'greg' ? GREG_MONTHS : HIJRI_MONTHS;
-            const mEl = document.getElementById('convMonth');
-            const currentM = selectedMonth || parseInt(mEl.value, 10) || 1;
-            let mOpts = '';
-            for (let i = 1; i <= 12; i++) {
-                mOpts += `<option value="${i}" ${i === currentM ? 'selected' : ''}>${toIndianDigits(i)} - ${monthNames[i - 1]}</option>`;
-            }
-            mEl.innerHTML = mOpts;
-        }
-
-        function onConvCalTypeChange() {
-            const calType = document.getElementById('convCalType').value;
-            const parsed = parseFlexibleDate(document.getElementById('convInput').value);
-            if (parsed) {
-                if (calType === 'greg') {
-                    populateConvMonthsDropdown('greg', parsed.gm);
-                    document.getElementById('convDay').value = String(parsed.gd);
-                    document.getElementById('convYear').value = toIndianDigits(parsed.gy);
-                    document.getElementById('convInput').value = parsed.gregFormatted;
-                } else {
-                    populateConvMonthsDropdown('hijri', parsed.hm);
-                    document.getElementById('convDay').value = String(parsed.hd);
-                    document.getElementById('convYear').value = toIndianDigits(parsed.hy);
-                    document.getElementById('convInput').value = parsed.hijriFormatted;
-                }
-            } else {
-                populateConvMonthsDropdown(calType, 1);
-                document.getElementById('convYear').value = toIndianDigits(calType === 'greg' ? 2026 : 1447);
-                syncFromDropdowns();
-            }
-            runSingleDateConvert(true);
-        }
-
-        function runSingleDateConvert(skipDropdownSync = false) {
-            const parsed = parseFlexibleDate(document.getElementById('convInput').value);
-            if (!parsed) return;
-            document.getElementById('convResWeekday').textContent = parsed.weekday;
-            document.getElementById('convResHijri').textContent = parsed.hijriFormatted;
-            document.getElementById('convResGreg').textContent = parsed.gregFormatted;
-            document.getElementById('convInputSubNote').textContent = parsed.oppositeNote;
-
-            if (!skipDropdownSync) {
-                const calType = parsed.isHijriInput ? 'hijri' : 'greg';
-                document.getElementById('convCalType').value = calType;
-                if (calType === 'greg') {
-                    populateConvMonthsDropdown('greg', parsed.gm);
-                    document.getElementById('convDay').value = String(parsed.gd);
-                    document.getElementById('convYear').value = toIndianDigits(parsed.gy);
-                } else {
-                    populateConvMonthsDropdown('hijri', parsed.hm);
-                    document.getElementById('convDay').value = String(parsed.hd);
-                    document.getElementById('convYear').value = toIndianDigits(parsed.hy);
-                }
-            }
-        }
-
-        function syncFromDropdowns() {
-            const calType = document.getElementById('convCalType').value;
-            const d = document.getElementById('convDay').value;
-            const m = document.getElementById('convMonth').value;
-            const defaultYear = calType === 'greg' ? 2026 : 1441;
-            const y = Math.round(parseNum(document.getElementById('convYear').value, defaultYear));
-            document.getElementById('convInput').value = toIndianDigits(`${String(d).padStart(2,'0')}-${String(m).padStart(2,'0')}-${y}`);
-            runSingleDateConvert(true);
-        }
-
-        function setTodayInConverter() {
-            const now = new Date();
-            document.getElementById('convInput').value = toIndianDigits(`${String(now.getDate()).padStart(2,'0')}-${String(now.getMonth()+1).padStart(2,'0')}-${now.getFullYear()}`);
-            runSingleDateConvert();
-        }
-
-        function calcDateDifferenceTab() {
-            const d1 = parseFlexibleDate(document.getElementById('diffDate1').value);
-            const d2 = parseFlexibleDate(document.getElementById('diffDate2').value);
-            if (d1) document.getElementById('diffDate1Sub').textContent = d1.oppositeNote;
-            if (d2) document.getElementById('diffDate2Sub').textContent = d2.oppositeNote;
-            if (d1 && d2) {
-                const res = calculateDaysBetween(d1, d2);
-                document.getElementById('diffResFixed').textContent = toIndianDigits(res.fixedDays);
-                document.getElementById('diffResActual').textContent = toIndianDigits(res.actualDays);
-            }
-        }
-
-        function transferDatesToPayroll() {
-            document.getElementById('pDateStart').value = document.getElementById('diffDate1').value;
-            document.getElementById('pDateEnd').value = document.getElementById('diffDate2').value;
-            setPayrollMode('date'); switchTab('tab-payroll'); calculatePayroll();
-        }
-
         // Remote Areas % Tab
         function setRemotePct(pct) {
             document.getElementById('remoteCustomPercent').value = toIndianDigits(pct);
@@ -1162,7 +1070,7 @@ tailwind.config = {
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             const target = document.getElementById(tabId); if (target) target.classList.add('active');
-            ['tab-payroll', 'tab-dates', 'tab-remote', 'tab-tables'].forEach(t => {
+            ['tab-payroll', 'tab-remote', 'tab-tables'].forEach(t => {
                 const deskBtn = document.getElementById('desk-' + t), mobBtn = document.getElementById('mob-' + t);
                 if (deskBtn) deskBtn.className = (t === tabId) ? "nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-amber-500 text-slate-950 shadow transition" : "nav-btn-desk flex-1 py-2 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-emerald-100 hover:bg-emerald-800/50 transition";
                 if (mobBtn) mobBtn.className = (t === tabId) ? "nav-btn-mob flex flex-col items-center justify-center gap-1 text-emerald-700 dark:text-emerald-400 font-extrabold" : "nav-btn-mob flex flex-col items-center justify-center gap-1 text-slate-400 font-medium";
@@ -1201,12 +1109,6 @@ tailwind.config = {
         window.toggleArt13Item = toggleArt13Item;
         window.toggleArt13Merge = toggleArt13Merge;
         window.copyPayrollReport = copyPayrollReport;
-        window.onConvCalTypeChange = onConvCalTypeChange;
-        window.runSingleDateConvert = runSingleDateConvert;
-        window.syncFromDropdowns = syncFromDropdowns;
-        window.setTodayInConverter = setTodayInConverter;
-        window.calcDateDifferenceTab = calcDateDifferenceTab;
-        window.transferDatesToPayroll = transferDatesToPayroll;
         window.setRemotePct = setRemotePct;
         window.calculateRemoteTab = calculateRemoteTab;
         window.setSalaryTableMode = setSalaryTableMode;
@@ -1233,20 +1135,11 @@ tailwind.config = {
             document.getElementById('promoOldDegree').innerHTML = degHtml;
             document.getElementById('promoNewDegree').innerHTML = degHtml;
 
-            let dOpts = ''; for (let i = 1; i <= 31; i++) dOpts += `<option value="${i}">${toIndianDigits(i)}</option>`;
-            document.getElementById('convDay').innerHTML = dOpts;
             const today = getTodayHijriDate();
             document.getElementById('pDateStart').value = today.formatted;
             document.getElementById('pDateEnd').value = today.formatted;
             document.getElementById('promoDateStart').value = today.formatted;
             document.getElementById('promoDateEnd').value = today.formatted;
-            document.getElementById('diffDate1').value = today.formatted;
-            document.getElementById('diffDate2').value = today.formatted;
-            document.getElementById('convInput').value = today.formatted;
-            document.getElementById('convCalType').selectedIndex = 0;
-            populateConvMonthsDropdown('hijri', today.hm);
-            document.getElementById('convDay').value = String(today.hd);
-            document.getElementById('convYear').value = toIndianDigits(today.hy);
 
             // تعبئة قوائم الأشهر (الفترة من = أشهر أقل، الفترة إلى = أشهر أكثر)
             document.getElementById('oldMonthStart').innerHTML = MONTHS_LIST_FROM.map(item =>
@@ -1259,8 +1152,6 @@ tailwind.config = {
 
             calculatePayroll();
             calcOldMonthsTool();
-            runSingleDateConvert();
-            calcDateDifferenceTab();
             calculateRemoteTab();
             renderSalaryTable();
             renderTechTable();
