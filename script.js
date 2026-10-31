@@ -216,7 +216,7 @@ tailwind.config = {
             const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
             const hijri = getHijriPartsFromGreg(today);
             const formatted = toIndianDigits(
-                `${String(hijri.hd).padStart(2, '0')}-${String(hijri.hm).padStart(2, '0')}-${hijri.hy}`
+                `${hijri.hy}/${String(hijri.hm).padStart(2, '0')}/${String(hijri.hd).padStart(2, '0')}`
             );
             return { ...hijri, formatted };
         }
@@ -275,7 +275,7 @@ tailwind.config = {
 
             // إذا كان التاريخ المدخل هجرياً تظهر الملاحظة بالميلادي، والعكس إذا كان ميلادياً تظهر بالهجري
             const oppositeFormatted = isHijriInput ? gregFormatted : hijriFormatted;
-            const oppositeNote = `${weekday} الموافق ${oppositeFormatted}`;
+            const oppositeNote = `${weekday} الموافق ${oppositeFormatted.split('-').reverse().join('/')}`;
 
             return {
                 gregDate, gy, gm, gd,
@@ -571,6 +571,13 @@ tailwind.config = {
             renderPayrollCalendar();
         }
 
+        function setPayrollCalendarYear(yearValue) {
+            const year = Number(yearValue);
+            if (!Number.isInteger(year) || year < 1) return;
+            payrollCalendarYear = year;
+            renderPayrollCalendar();
+        }
+
         function renderPayrollCalendar() {
             const isHijri = payrollCalendarType === 'hijri';
             const monthNames = isHijri ? HIJRI_MONTHS : GREG_MONTHS;
@@ -591,7 +598,16 @@ tailwind.config = {
                 : null;
 
             document.getElementById('payrollCalendarMonthTitle').textContent =
-                `${monthNames[payrollCalendarMonth - 1]} ${toIndianDigits(payrollCalendarYear)}`;
+                `${monthNames[payrollCalendarMonth - 1]} (${toIndianDigits(payrollCalendarMonth)})`;
+            const yearSelect = document.getElementById('payrollCalendarYearSelect');
+            const firstYear = Math.max(1, payrollCalendarYear - 100);
+            const lastYear = payrollCalendarYear + 100;
+            let yearOptions = '';
+            for (let year = firstYear; year <= lastYear; year++) {
+                yearOptions += `<option value="${year}">${toIndianDigits(year)}</option>`;
+            }
+            yearSelect.innerHTML = yearOptions;
+            yearSelect.value = String(payrollCalendarYear);
             ['hijri', 'gregorian'].forEach(type => {
                 const button = document.getElementById(`payrollCalendar${type === 'hijri' ? 'Hijri' : 'Gregorian'}`);
                 const isSelected = type === payrollCalendarType;
@@ -623,7 +639,7 @@ tailwind.config = {
         function selectPayrollCalendarDate(year, month, day) {
             if (!activePayrollDateInput) return;
             document.getElementById(activePayrollDateInput).value = toIndianDigits(
-                `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`
+                `${year}/${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
             );
             calculatePayroll();
             closePayrollDatePicker();
@@ -1102,6 +1118,7 @@ tailwind.config = {
         window.closePayrollDatePicker = closePayrollDatePicker;
         window.setPayrollCalendarType = setPayrollCalendarType;
         window.shiftPayrollCalendarMonth = shiftPayrollCalendarMonth;
+        window.setPayrollCalendarYear = setPayrollCalendarYear;
         window.selectPayrollCalendarDate = selectPayrollCalendarDate;
         window.calculatePayroll = calculatePayroll;
         window.togglePayrollItem = togglePayrollItem;
