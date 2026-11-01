@@ -54,7 +54,7 @@ tailwind.config = {
         (function buildExactMonthsLists() {
             let idx = 1;
             for (let y = 1420; y <= 1441; y++) {
-                const maxM = (y === 1441) ? 3 : 12;
+                const maxM = (y === 1441) ? 2 : 12;
                 for (let m = 1; m <= maxM; m++) {
                     const item = {
                         key: `${y}-${m}`,
